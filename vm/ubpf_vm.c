@@ -562,8 +562,23 @@ validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_i
         return false;
     }
 
+    /* Actually, having an exit at the end of instructions does not guarantee that it will finish... */
+    /* Rather, check if one of the instructions is an EBPF_OP_EXIT */
+    /*
     if (num_insts == 0 || insts[num_insts-1].opcode != EBPF_OP_EXIT) {
         *errmsg = ubpf_error("no exit at end of instructions");
+        return false;
+    }*/
+
+    int exit_insts_index;
+    for (exit_insts_index = 0; exit_insts_index < num_insts; exit_insts_index++) {
+        if (insts[exit_insts_index].opcode == EBPF_OP_EXIT) {
+            break;
+        }
+    }
+
+    if (exit_insts_index >= num_insts) {
+        *errmsg = ubpf_error("no exit in instructions");
         return false;
     }
 
