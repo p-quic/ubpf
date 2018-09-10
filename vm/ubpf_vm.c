@@ -49,6 +49,8 @@ ubpf_create(void)
         return NULL;
     }
 
+    vm->first_mem_node = NULL;
+
     return vm;
 }
 
@@ -61,6 +63,15 @@ ubpf_destroy(struct ubpf_vm *vm)
     free(vm->insts);
     free(vm->ext_funcs);
     free(vm->ext_func_names);
+
+    static_mem_node_t *n = vm->first_mem_node;
+    static_mem_node_t *tmp;
+    while (n) {
+        tmp = n;
+        n = n->next;
+        free(tmp->ptr);
+        free(tmp);
+    }
     free(vm);
 }
 

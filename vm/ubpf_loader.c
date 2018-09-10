@@ -182,7 +182,53 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
         for (j = 0; j < rel->size/sizeof(Elf64_Rel); j++) {
             const Elf64_Rel *r = &rs[j];
 
-            if (ELF64_R_TYPE(r->r_info) != 2) {
+            if (ELF64_R_TYPE(r->r_info) == 1) {
+                uint32_t sym_idx = ELF64_R_SYM(r->r_info);
+                if (sym_idx >= num_syms) {
+                    *errmsg = ubpf_error("bad symbol index");
+                    goto error;
+                }
+
+                const Elf64_Sym *sym = &syms[sym_idx];
+
+                if (sym->st_name >= strtab->size) {
+                    *errmsg = ubpf_error("bad symbol name");
+                    goto error;
+                }
+
+                if (sym->st_name >= strtab->size) {
+                    *errmsg = ubpf_error("bad symbol name");
+                    goto error;
+                }
+                const Elf64_Section ndx = sym->st_shndx;
+                const struct section *str_section = &sections[ndx];
+                const void *str_data = str_section->data;
+                const char *str_to_give = (char *) (str_data + sym->st_value);
+
+                size_t size = strlen(str_to_give);
+                char *s = (char*)malloc((size + 1) * sizeof(char));
+                if (!s) {
+                    *errmsg = ubpf_error("str malloc error");
+                    goto error;
+                }
+                static_mem_node_t *n = (static_mem_node_t*)malloc(sizeof(static_mem_node_t));
+                if (!n) {
+                    *errmsg = ubpf_error("static_mem_node_t malloc error");
+                    goto error;
+                }
+                strncpy(s, str_to_give, size + 1);
+                n->ptr = s;
+                n->size = size + 1;
+                n->next = vm->first_mem_node;
+                vm->first_mem_node = n;
+
+                *(uint32_t *)(text_copy + r->r_offset + 4) = (uint32_t) ((uint64_t) n->ptr & 0xffffffff);
+                *(uint32_t *)(text_copy + r->r_offset + 12) = (uint32_t) ((uint64_t) n->ptr >> 32);
+
+                continue;
+            }
+
+            if (ELF64_R_TYPE(r->r_info) != 2 && ELF64_R_TYPE(r->r_info) != 10) {
                 *errmsg = ubpf_error("bad relocation type %u", ELF64_R_TYPE(r->r_info));
                 goto error;
             }
@@ -199,7 +245,6 @@ ubpf_load_elf(struct ubpf_vm *vm, const void *elf, size_t elf_size, char **errms
                 *errmsg = ubpf_error("bad symbol name");
                 goto error;
             }
-
             const char *sym_name = strings + sym->st_name;
 
             if (r->r_offset + 8 > text->size) {
