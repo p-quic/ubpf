@@ -27,7 +27,7 @@
 #define MAX_EXT_FUNCS 64
 
 static bool validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_insts, char **errmsg);
-static bool bounds_check(const struct ubpf_vm *vm, void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack);
+static bool bounds_check(struct ubpf_vm *vm, void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack);
 
 struct ubpf_vm *
 ubpf_create(void)
@@ -137,12 +137,12 @@ u32(uint64_t x)
     return x;
 }
 
-char *ubpf_get_error_msg(const struct ubpf_vm *vm) {
+const char *ubpf_get_error_msg(const struct ubpf_vm *vm) {
     return vm->error_msg[0] ? vm->error_msg : NULL;
 }
 
 uint64_t
-ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
+ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len)
 {
     uint16_t pc = 0;
     const struct ebpf_inst *insts = vm->insts;
@@ -193,7 +193,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
         case EBPF_OP_DIV_REG:
             if (reg[inst.src] == 0) {
                 snprintf(vm->error_msg, MAX_ERROR_MSG, "uBPF error: division by zero at PC %u\n", cur_pc);
-                fprintf(stderr, vm->error_msg);
+                fprintf(stderr, "%s", vm->error_msg);
                 return UINT64_MAX;
             }
             reg[inst.dst] = u32(reg[inst.dst]) / u32(reg[inst.src]);
@@ -242,7 +242,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
         case EBPF_OP_MOD_REG:
             if (reg[inst.src] == 0) {
                 snprintf(vm->error_msg, MAX_ERROR_MSG, "uBPF error: division by zero at PC %u\n", cur_pc);
-                fprintf(stderr, vm->error_msg);
+                fprintf(stderr, "%s", vm->error_msg);
                 return UINT64_MAX;
             }
             reg[inst.dst] = u32(reg[inst.dst]) % u32(reg[inst.src]);
@@ -316,7 +316,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
         case EBPF_OP_DIV64_REG:
             if (reg[inst.src] == 0) {
                 snprintf(vm->error_msg, MAX_ERROR_MSG, "uBPF error: division by zero at PC %u\n", cur_pc);
-                fprintf(stderr, vm->error_msg);
+                fprintf(stderr, "%s", vm->error_msg);
                 return UINT64_MAX;
             }
             reg[inst.dst] /= reg[inst.src];
@@ -354,7 +354,7 @@ ubpf_exec(const struct ubpf_vm *vm, void *mem, size_t mem_len)
         case EBPF_OP_MOD64_REG:
             if (reg[inst.src] == 0) {
                 snprintf(vm->error_msg, MAX_ERROR_MSG, "uBPF error: division by zero at PC %u\n", cur_pc);
-                fprintf(stderr, vm->error_msg);
+                fprintf(stderr, "%s", vm->error_msg);
                 return UINT64_MAX;
             }
             reg[inst.dst] %= reg[inst.src];
@@ -771,7 +771,7 @@ validate(const struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32_t num_i
 }
 
 static bool
-bounds_check(const struct ubpf_vm *vm, void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack)
+bounds_check(struct ubpf_vm *vm, void *addr, int size, const char *type, uint16_t cur_pc, void *mem, size_t mem_len, void *stack)
 {
     if (mem && (addr >= mem && (addr + size) <= (mem + mem_len))) {
         /* Context access */
@@ -781,7 +781,7 @@ bounds_check(const struct ubpf_vm *vm, void *addr, int size, const char *type, u
         return true;
     } else {
         snprintf(vm->error_msg, MAX_ERROR_MSG, "uBPF error: out of bounds memory %s at PC %u, addr %p, size %d\nmem %p/%zd stack %p/%d\n", type, cur_pc, addr, size, mem, mem_len, stack, STACK_SIZE);
-        fprintf(stderr, vm->error_msg);
+        fprintf(stderr, "%s", vm->error_msg);
         return false;
     }
 }
