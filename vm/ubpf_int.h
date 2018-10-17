@@ -23,6 +23,8 @@
 #define MAX_INSTS 65536
 #define STACK_SIZE 2048 // previously 128, but it is definitely too short...
 
+#define MAX_ERROR_MSG 200
+
 struct ebpf_inst;
 typedef uint64_t (*ext_func)(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3, uint64_t arg4);
 
@@ -40,6 +42,8 @@ struct ubpf_vm {
     ext_func *ext_funcs;
     const char **ext_func_names;
     static_mem_node_t *first_mem_node;
+    /* If the VM crashes, indicates here why */
+    char error_msg[MAX_ERROR_MSG];
 };
 
 char *ubpf_error(const char *fmt, ...);
