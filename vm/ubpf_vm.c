@@ -144,6 +144,12 @@ const char *ubpf_get_error_msg(const struct ubpf_vm *vm) {
 uint64_t
 ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len)
 {
+    return ubpf_exec_with_arg(vm, mem, mem, mem_len);
+}
+
+uint64_t
+ubpf_exec_with_arg(struct ubpf_vm *vm, void *arg, void *mem, size_t mem_len)
+{
     uint16_t pc = 0;
     const struct ebpf_inst *insts = vm->insts;
     uint64_t reg[16];
@@ -154,7 +160,7 @@ ubpf_exec(struct ubpf_vm *vm, void *mem, size_t mem_len)
         return UINT64_MAX;
     }
 
-    reg[1] = (uintptr_t)mem;
+    reg[1] = (uintptr_t)arg;
     reg[10] = (uintptr_t)stack + sizeof(stack);
 
     while (1) {
