@@ -244,8 +244,8 @@ void help_printf_ptr(void *p) {
     printf("%p\n", p);
 }
 
-void membound_fail(uint64_t val, uint64_t mem_ptr) {
-    printf("Out of bound access with val 0x%lx, start of mem is 0x%lx\n", val, mem_ptr);
+void membound_fail(uint64_t val, uint64_t mem_ptr, uint64_t stack_ptr) {
+    printf("Out of bound access with val 0x%lx, start of mem is 0x%lx, top of stack is 0x%lx\n", val, mem_ptr, stack_ptr);
 }
 
 static void
