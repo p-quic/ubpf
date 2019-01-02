@@ -122,14 +122,14 @@ ubpf_load(struct ubpf_vm *vm, const void *code, uint32_t code_len, char **errmsg
     }
 
     if (memory_ptr != 0 && memory_size != 0) {
-        vm->insts = malloc(code_len + (80 * num_load_store) + 16); /* 10 instructions for memcheck + 2 for R12 */
+        vm->insts = malloc(code_len + (88 * num_load_store) + 16); /* 11 instructions for memcheck + 2 for R12 */
         if (vm->insts == NULL) {
             *errmsg = ubpf_error("out of memory");
             return -1;
         }
 
         rewrite_with_memchecks(vm, code, code_len/8, errmsg, memory_ptr, memory_size);
-        vm->num_insts = code_len/sizeof(vm->insts[0]) + (10 * num_load_store) + 2;
+        vm->num_insts = code_len/sizeof(vm->insts[0]) + (11 * num_load_store) + 2;
     } else {
         vm->insts = malloc(code_len);
         if (vm->insts == NULL) {
@@ -836,6 +836,7 @@ rewrite_with_memchecks(struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32
                 /* We failed one of the tests, log the error and exits */
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_MOV64_REG, .dst = 1, .src = inst.src, .offset = 0, .imm = 0};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_ADD64_IMM, .dst = 1, .src = 0, .offset = 0, .imm = (int32_t) inst.offset};
+                vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_MOV64_REG, .dst = 2, .src = 12, .offset = 0, .imm = 0};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_CALL, .dst = 0, .src = 0, .offset = 0, .imm = MAX_EXT_FUNCS - 1};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_EXIT, .dst = 0, .src = 0, .offset = 0, .imm = 0};
             }
@@ -865,6 +866,7 @@ rewrite_with_memchecks(struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32
                 /* We failed one of the tests, log the error and exits */
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_MOV64_REG, .dst = 1, .src = inst.dst, .offset = 0, .imm = 0};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_ADD64_IMM, .dst = 1, .src = 0, .offset = 0, .imm = (int32_t) inst.offset};
+                vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_MOV64_REG, .dst = 2, .src = 12, .offset = 0, .imm = 0};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_CALL, .dst = 0, .src = 0, .offset = 0, .imm = MAX_EXT_FUNCS - 1};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_EXIT, .dst = 0, .src = 0, .offset = 0, .imm = 0};
             }

@@ -240,8 +240,12 @@ void help_printf_str(char *s) {
     printf("%s\n", s);
 }
 
-void membound_fail(uint64_t val) {
-    printf("Out of bound access with val 0x%lx\n", val);
+void help_printf_ptr(void *p) {
+    printf("%p\n", p);
+}
+
+void membound_fail(uint64_t val, uint64_t mem_ptr) {
+    printf("Out of bound access with val 0x%lx, start of mem is 0x%lx\n", val, mem_ptr);
 }
 
 static void
@@ -260,5 +264,6 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 10, "help_printf_uint32_t", help_printf_uint32_t);
     ubpf_register(vm, 11, "help_printf_char", help_printf_char);
     ubpf_register(vm, 12, "help_printf_str", help_printf_str);
+    ubpf_register(vm, 13, "help_printf_ptr", help_printf_ptr);
     ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
