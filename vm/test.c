@@ -28,6 +28,9 @@
 #include <math.h>
 #include "ubpf.h"
 
+#include <sys/types.h>          /* See NOTES */
+#include <sys/socket.h>
+
 void ubpf_set_register_offset(int x);
 static void *readfile(const char *path, size_t maxlen, size_t *len);
 static void register_functions(struct ubpf_vm *vm);
@@ -114,9 +117,9 @@ int main(int argc, char **argv)
     char *errmsg;
     int rv;
     if (elf) {
-	rv = ubpf_load_elf(vm, code, code_len, &errmsg);
+        rv = ubpf_load_elf(vm, code, code_len, &errmsg, 10, 100);
     } else {
-	rv = ubpf_load(vm, code, code_len, &errmsg);
+        rv = ubpf_load(vm, code, code_len, &errmsg, 10, 100);
     }
 
     free(code);
@@ -225,6 +228,22 @@ sqrti(uint32_t x)
     return sqrt(x);
 }
 
+void help_printf_uint32_t(uint32_t val) {
+    printf("%u\n", val);
+}
+
+void help_printf_char(char c) {
+    printf("%c\n", c);
+}
+
+void help_printf_str(char *s) {
+    printf("%s\n", s);
+}
+
+void membound_fail(uint64_t val) {
+    printf("Out of bound access with val 0x%lx\n", val);
+}
+
 static void
 register_functions(struct ubpf_vm *vm)
 {
@@ -233,4 +252,13 @@ register_functions(struct ubpf_vm *vm)
     ubpf_register(vm, 2, "trash_registers", trash_registers);
     ubpf_register(vm, 3, "sqrti", sqrti);
     ubpf_register(vm, 4, "strcmp_ext", strcmp);
+    ubpf_register(vm, 5, "memset", memset);
+    ubpf_register(vm, 6, "socket", socket);
+    ubpf_register(vm, 7, "bind", bind);
+    ubpf_register(vm, 8, "recv", recv);
+    ubpf_register(vm, 9, "malloc", malloc);
+    ubpf_register(vm, 10, "help_printf_uint32_t", help_printf_uint32_t);
+    ubpf_register(vm, 11, "help_printf_char", help_printf_char);
+    ubpf_register(vm, 12, "help_printf_str", help_printf_str);
+    ubpf_register(vm, 63, "membound_fail", membound_fail);
 }
