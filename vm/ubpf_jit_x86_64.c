@@ -559,7 +559,7 @@ ubpf_compile(struct ubpf_vm *vm, char **errmsg)
     }
 
     state.offset = 0;
-    state.size = 65536;
+    state.size = 4*65536;
     state.buf = calloc(state.size, 1);
     state.pc_locs = calloc(MAX_INSTS+1, sizeof(state.pc_locs[0]));
     state.jumps = calloc(MAX_INSTS, sizeof(state.jumps[0]));
