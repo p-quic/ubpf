@@ -461,20 +461,24 @@ muldivmod(struct jit_state *state, uint16_t pc, uint8_t opcode, int src, int dst
     bool div = (opcode & EBPF_ALU_OP_MASK) == (EBPF_OP_DIV_IMM & EBPF_ALU_OP_MASK);
     bool mod = (opcode & EBPF_ALU_OP_MASK) == (EBPF_OP_MOD_IMM & EBPF_ALU_OP_MASK);
     bool is64 = (opcode & EBPF_CLS_MASK) == EBPF_CLS_ALU64;
+    bool reg = (opcode & EBPF_SRC_REG) == EBPF_SRC_REG;
 
-    if (div || mod) {
+    if ((div || mod) && (reg || imm == 0)) {
         emit_load_imm(state, RCX, pc);
 
         /* test src,src */
-        if (is64) {
+        if (reg && is64) {
             emit_alu64(state, 0x85, src, src);
-        } else {
+        } else if (reg) {
+            emit_alu32(state, 0x85, src, src);
+        } else { /* imm == 0 */
+            emit_load_imm(state, src, imm);
             emit_alu32(state, 0x85, src, src);
         }
 
         /* jz div_by_zero */
         emit_jcc(state, 0x84, TARGET_PC_DIV_BY_ZERO);
-    }
+    } // else: no check to do: if this is a div, it is immediate with imm != 0, so no is check needed
 
     if (dst != RAX) {
         emit_push(state, RAX);
