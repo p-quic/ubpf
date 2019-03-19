@@ -24,7 +24,8 @@
 #include <sys/mman.h>
 #include "ubpf_int.h"
 
-#define MAX_EXT_FUNCS 64
+#define MAX_EXT_FUNCS 128
+#define OOB_CALL 0x3f
 #define MAX_LOAD_STORE 2048
 #define ADDED_LOAD_STORE_INSTS 20
 
@@ -862,7 +863,7 @@ rewrite_with_memchecks(struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_LDDW, .dst = 2, .src = 0, .offset = 0, .imm = memory_ptr & UINT32_MAX};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = 0, .dst = 0, .src = 0, .offset = 0, .imm = memory_ptr >> 32};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_MOV64_REG, .dst = 3, .src = 10, .offset = 0, .imm = 0};
-                vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_CALL, .dst = 0, .src = 0, .offset = 0, .imm = MAX_EXT_FUNCS - 1};
+                vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_CALL, .dst = 0, .src = 0, .offset = 0, .imm = OOB_CALL};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_EXIT, .dst = 0, .src = 0, .offset = 0, .imm = 0};
             }
             /* And eventually add the load */
@@ -905,7 +906,7 @@ rewrite_with_memchecks(struct ubpf_vm *vm, const struct ebpf_inst *insts, uint32
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_LDDW, .dst = 2, .src = 0, .offset = 0, .imm = memory_ptr & UINT32_MAX};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = 0, .dst = 0, .src = 0, .offset = 0, .imm = memory_ptr >> 32};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_MOV64_REG, .dst = 3, .src = 10, .offset = 0, .imm = 0};
-                vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_CALL, .dst = 0, .src = 0, .offset = 0, .imm = MAX_EXT_FUNCS - 1};
+                vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_CALL, .dst = 0, .src = 0, .offset = 0, .imm = OOB_CALL};
                 vm->insts[pc++] = (struct ebpf_inst) {.opcode = EBPF_OP_EXIT, .dst = 0, .src = 0, .offset = 0, .imm = 0};
             }
             /* And eventually add it */
