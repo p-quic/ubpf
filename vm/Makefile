@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-CFLAGS := -Wall -Werror -Iinc -O2 -g
+CFLAGS := -Wall -Iinc -O2 -g
 LDLIBS := -lm
 
 ifeq ($(COVERAGE),1)
@@ -23,6 +23,10 @@ endif
 ifeq ($(ASAN),1)
 CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
+endif
+
+ifeq ($(NS3),1)
+CFLAGS += -fPIC
 endif
 
 all: libubpf.a test
