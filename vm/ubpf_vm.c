@@ -25,7 +25,7 @@
 #include "ubpf_int.h"
 
 #define MAX_EXT_FUNCS 128
-#define OOB_CALL 0x3f
+#define OOB_CALL 0x7f
 #define MAX_LOAD_STORE 2048
 #define ADDED_LOAD_STORE_INSTS 20
 
