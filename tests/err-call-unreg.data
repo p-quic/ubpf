@@ -4,7 +4,7 @@ mov r2, 2
 mov r3, 3
 mov r4, 4
 mov r5, 5
-call 63
+call 62
 exit
 -- error
-Failed to load code: call to nonexistent function 63 at PC 5
+Failed to load code: call to nonexistent function 62 at PC 5
