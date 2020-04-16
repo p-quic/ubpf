@@ -25,6 +25,10 @@ CFLAGS += -fsanitize=address
 LDFLAGS += -fsanitize=address
 endif
 
+ifeq ($(NS3),1)
+CFLAGS += -fPIC
+endif
+
 all: libubpf.a test
 
 ubpf_jit_x86_64.o: ubpf_jit_x86_64.c ubpf_jit_x86_64.h
