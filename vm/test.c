@@ -117,9 +117,9 @@ int main(int argc, char **argv)
     char *errmsg;
     int rv;
     if (elf) {
-        rv = ubpf_load_elf(vm, code, code_len, &errmsg, 10, 100);
+        rv = ubpf_load_elf(vm, code, code_len, &errmsg, (uint64_t) mem, mem_len);
     } else {
-        rv = ubpf_load(vm, code, code_len, &errmsg, 10, 100);
+        rv = ubpf_load(vm, code, code_len, &errmsg, (uint64_t) mem, mem_len);
     }
 
     free(code);
